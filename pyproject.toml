@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "npo-start-sub-converter"
+version = "0.1.0"
+description = "Convert NPO Start subtitles to ASS"
+authors = ["sepro"]
+readme = "README.md"
+packages = [{include = "npo_start_sub_converter"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pysubs2 = "^1.4.3"
+pysrt = "^1.1.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = {version = "^22.8.0", allow-prereleases = true}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
