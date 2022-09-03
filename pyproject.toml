@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "npo-start-sub-converter"
-version = "0.1.0"
+version = "0.1.1"
 description = "Convert NPO Start subtitles to ASS"
 authors = ["sepro"]
 readme = "README.md"

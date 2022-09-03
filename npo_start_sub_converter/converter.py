@@ -156,5 +156,5 @@ def convert_subtitle(filename: str) -> int:
     for line in vtt:
         ass.events.append(convert_line(line))
     ass.sort()
-    ass.save(filename + ".ass", header_notice="")
+    ass.save(filename + ".ass", encoding="utf-8-sig", header_notice="")
     return 0
