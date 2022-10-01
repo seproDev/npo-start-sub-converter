@@ -9,14 +9,15 @@ DEFAULT_MARGINV = 90  # Percentage of screen
 MARGINV_OFFSET = -30
 
 
-def generate_empty_ass() -> pysubs2.SSAFile:
+def generate_empty_ass(with_styles: bool = True) -> pysubs2.SSAFile:
     ass = pysubs2.SSAFile()
 
     # Define Deafult style
     ass.styles["Default"].fontname = "Clear Sans Medium"
-    ass.styles["Default"].fontsize = 73
+    ass.styles["Default"].fontsize = 72
     ass.styles["Default"].bold = True
     ass.styles["Default"].primarycolor = pysubs2.Color(255, 255, 255, 0)
+    ass.styles["Default"].secondarycolor = pysubs2.Color(255, 255, 255, 0)
     ass.styles["Default"].outlinecolor = pysubs2.Color(0, 0, 0, 0)
     ass.styles["Default"].backcolor = pysubs2.Color(0, 0, 0, 160)
     ass.styles["Default"].outline = 3.5
@@ -27,24 +28,25 @@ def generate_empty_ass() -> pysubs2.SSAFile:
         (1 - DEFAULT_MARGINV / 100) * VIDEO_HEIGHT + MARGINV_OFFSET
     )
 
-    # Add different color styles
-    ass.styles["White"] = ass.styles["Default"].copy()
-    ass.styles["White"].primarycolor = pysubs2.Color(255, 255, 255, 0)
-    ass.styles["Lime"] = ass.styles["Default"].copy()
-    ass.styles["Lime"].primarycolor = pysubs2.Color(0, 255, 0, 0)
-    ass.styles["Cyan"] = ass.styles["Default"].copy()
-    ass.styles["Cyan"].primarycolor = pysubs2.Color(0, 255, 255, 0)
-    ass.styles["Red"] = ass.styles["Default"].copy()
-    ass.styles["Red"].primarycolor = pysubs2.Color(255, 0, 0, 0)
-    ass.styles["Yellow"] = ass.styles["Default"].copy()
-    ass.styles["Yellow"].primarycolor = pysubs2.Color(255, 255, 0, 0)
-    ass.styles["Magenta"] = ass.styles["Default"].copy()
-    ass.styles["Magenta"].primarycolor = pysubs2.Color(255, 0, 255, 0)
-    ass.styles["Blue"] = ass.styles["Default"].copy()
-    ass.styles["Blue"].primarycolor = pysubs2.Color(0, 0, 255, 0)
-    ass.styles["Black"] = ass.styles["Default"].copy()
-    ass.styles["Black"].primarycolor = pysubs2.Color(0, 0, 0, 0)
-    ass.styles["Black"].outlinecolor = pysubs2.Color(255, 255, 255, 0)
+    if with_styles:
+        # Add different color styles
+        ass.styles["White"] = ass.styles["Default"].copy()
+        ass.styles["White"].primarycolor = pysubs2.Color(255, 255, 255, 0)
+        ass.styles["Lime"] = ass.styles["Default"].copy()
+        ass.styles["Lime"].primarycolor = pysubs2.Color(0, 255, 0, 0)
+        ass.styles["Cyan"] = ass.styles["Default"].copy()
+        ass.styles["Cyan"].primarycolor = pysubs2.Color(0, 255, 255, 0)
+        ass.styles["Red"] = ass.styles["Default"].copy()
+        ass.styles["Red"].primarycolor = pysubs2.Color(255, 0, 0, 0)
+        ass.styles["Yellow"] = ass.styles["Default"].copy()
+        ass.styles["Yellow"].primarycolor = pysubs2.Color(255, 255, 0, 0)
+        ass.styles["Magenta"] = ass.styles["Default"].copy()
+        ass.styles["Magenta"].primarycolor = pysubs2.Color(255, 0, 255, 0)
+        ass.styles["Blue"] = ass.styles["Default"].copy()
+        ass.styles["Blue"].primarycolor = pysubs2.Color(0, 0, 255, 0)
+        ass.styles["Black"] = ass.styles["Default"].copy()
+        ass.styles["Black"].primarycolor = pysubs2.Color(0, 0, 0, 0)
+        ass.styles["Black"].outlinecolor = pysubs2.Color(255, 255, 255, 0)
 
     # Set info segment and metadata
     ass.info.update({"YCbCr Matrix": "TV.709"})
@@ -146,15 +148,27 @@ def convert_line(line: pysrt.SubRipItem) -> pysubs2.SSAEvent:
     return ass_line
 
 
-def convert_subtitle(filename: str) -> int:
+def convert_subtitle(filename: str, suffix: str = "", with_styling: bool = True) -> int:
     try:
         vtt = pysrt.open(filename)
     except Exception:
         print(f"ERROR: Couldn't open {filename}")
         return 1
-    ass = generate_empty_ass()
+    ass = generate_empty_ass(with_styling)
     for line in vtt:
-        ass.events.append(convert_line(line))
+        if with_styling:
+            ass.events.append(convert_line(line))
+        else:
+            ass_line = pysubs2.SSAEvent()
+            ass_line.start = line.start.ordinal
+            ass_line.end = line.end.ordinal
+            ass_line.style = "Default"
+            text = line.text
+            text = text.replace("\n", " ")
+            text = text.replace("</c>", "")
+            text = re.sub(r"(<c\.[^>]+>)", "", text)
+            ass_line.text = text
+            ass.events.append(ass_line)
     ass.sort()
-    ass.save(filename + ".ass", encoding="utf-8-sig", header_notice="")
+    ass.save(filename + suffix + ".ass", encoding="utf-8-sig", header_notice="")
     return 0
